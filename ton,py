@@ -1,0 +1,32 @@
+from hikkatl.types import Message
+from .. import loader, utils
+import aiohttp
+import json
+
+@loader.tds
+class TonPriceMod(loader.Module):
+    """Показывает текущий курс TON к рублю"""
+    strings = {"name": "TonPrice"}
+
+    async def toncmd(self, message: Message):
+        """Проверить текущий курс TON/RUB"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://api2.binance.com/api/v3/ticker/price?symbol=TONRUB") as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        price = float(data["price"])
+                        await utils.answer(
+                            message,
+                            f"<b>💰 Курс TON/RUB:</b> <code>{price:.2f}</code>"
+                        )
+                    else:
+                        await utils.answer(
+                            message,
+                            "<b>⚠️ Ошибка при получении курса</b>"
+                        )
+        except Exception as e:
+            await utils.answer(
+                message,
+                f"<b>❌ Произошла ошибка:</b> <code>{str(e)}</code>"
+            )
